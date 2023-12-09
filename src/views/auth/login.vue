@@ -76,7 +76,7 @@ const login = async () => {
           <div class="mt-3">
             <button
               :disabled="isLoading"
-              class="text-xs disabled:cursor-not-allowed disabled:opacity-70 text-white rounded-lg bg-[#00D99D] outline-none w-full px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
+              class="text-xs disabled:cursor-not-allowed disabled:opacity-70 text-white rounded-lg bg-[#00D99D] outline-none w-full px-[14px] py-[10px] font-medium flex items-center justify-center"
             >
               <span v-if="!isLoading"> Login </span>
               <div v-else class="w-4 h-4 flex items-center justify-center">

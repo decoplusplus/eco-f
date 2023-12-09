@@ -6,5 +6,5 @@ const instance = axios.create({
 
 // make sure credentials are sent with every request
 
-// instance.defaults.withCredentials = true;
+instance.defaults.withCredentials = true;
 export default instance;
