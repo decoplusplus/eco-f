@@ -1,10 +1,22 @@
 <script setup>
 import useMainStore from "@/stores/user";
-import TradeItemCard from "@/components/trade-item-card.vue";
+import useDashboardStore from "@/stores/dashboard";
+import TradeItemCard from "@/components/dashboard/trade-item-card.vue";
 import { storeToRefs } from "pinia";
 import { useToast } from "vue-toast-notification";
+import ActiveInvestmentCard from "@/components/dashboard/active-investment-card.vue";
+import { onMounted, watch } from "vue";
+import Loader from "@/components/loader.vue";
+const { user, firstName, refLink, isLoggedIn } = storeToRefs(useMainStore());
 
-const { user, firstName, refLink } = storeToRefs(useMainStore());
+const dashboardStore = useDashboardStore();
+const {
+  isFetchingPlanTemplates,
+  isFetchingRunningInvestments,
+  planTemplates,
+  runningInvestments,
+} = storeToRefs(dashboardStore);
+const { getPlanTemplates, getRunningInvestments } = dashboardStore;
 const $toast = useToast();
 
 const handleCopy = () => {
@@ -15,6 +27,16 @@ const handleCopy = () => {
     position: "top",
   });
 };
+
+onMounted(() => {
+  if (isLoggedIn.value === true && user.value?._id) {
+    if (!planTemplates.value.length && !isFetchingPlanTemplates.value)
+      getPlanTemplates();
+
+    if (!runningInvestments.value.length && !isFetchingRunningInvestments.value)
+      getRunningInvestments();
+  }
+});
 </script>
 
 <template>
@@ -164,25 +186,80 @@ const handleCopy = () => {
         </div>
       </div>
     </div>
-    <div class="mt-4">
-      <h3 class="font-medium md:text-lg text-base">
-        Explore Sustainable Opportunities
-      </h3>
-      <p class="my-3 text-[#667085] max-w-lg w-full md:text-base text-sm">
-        Discover a range of impactful green eco programs designed to align your
-        investments with environmental sustainability.
-      </p>
-      <div class="mt-2">
-        <div class="flex flex-row flex-wrap gap-2">
-          <div class="lg:w-[calc(33%-8px)] md:w-[calc(50%-8px)] w-full">
-            <trade-item-card />
+    <div class="mt-6 flex gap-4 md:flex-row flex-col-reverse">
+      <div class="md:w-[60%] lg:w-[70%] w-full md:mt-0 mt-5">
+        <h3 class="font-medium md:text-lg text-base">
+          Explore Sustainable Opportunities
+        </h3>
+        <p class="my-3 text-[#667085] max-w-lg w-full md:text-base text-sm">
+          Discover a range of impactful green eco programs designed to align
+          your investments with environmental sustainability.
+        </p>
+        <div
+          class="mt-2"
+          v-if="user && !isFetchingPlanTemplates && planTemplates.length"
+        >
+          <div class="flex flex-row flex-wrap gap-2">
+            <div
+              class="lg:w-[calc(50%-8px)] w-full"
+              v-for="item in planTemplates"
+              :key="item._id"
+            >
+              <trade-item-card
+                :projectTitle="item.projectTitle"
+                :minimumInvestment="item.minimumAmountToTrade"
+                :duration="item.duration"
+                :dailyInterest="item.dailyInterestPercentage"
+              />
+            </div>
           </div>
-          <div class="lg:w-[calc(33%-8px)] md:w-[calc(50%-8px)] w-full">
-            <trade-item-card />
+        </div>
+        <div
+          class="mt-2 text-sm text-center bg-[#F9FAFB] p-5"
+          v-else-if="user && !isFetchingPlanTemplates && !planTemplates.length"
+        >
+          no templates. check back later
+        </div>
+        <div
+          class="mt-2 p-6 bg-[#F9FAFB] text-center flex items-center justify-center gap-1"
+          v-else
+        >
+          <span class="text-sm">Fetching templates</span>
+          <Loader />
+        </div>
+      </div>
+      <div class="md:w-[40%] lg:w-[30%] w-full">
+        <h3 class="font-medium md:text-lg text-base">Active Investments</h3>
+        <p class="my-3 text-[#667085] max-w-lg w-full md:text-base text-sm">
+          Explore your Active Investments. Witness your funds at work, actively
+          contributing to sustainable projects.
+        </p>
+        <div
+          class="mt-2"
+          v-if="
+            user && !isFetchingRunningInvestments && runningInvestments.length
+          "
+        >
+          <div class="flex flex-row flex-wrap gap-2">
+            <div class="w-full">
+              <active-investment-card />
+            </div>
           </div>
-          <div class="lg:w-[calc(33%-8px)] md:w-[calc(50%-8px)] w-full">
-            <trade-item-card />
-          </div>
+        </div>
+        <div
+          class="mt-2 text-sm text-center bg-[#F9FAFB] p-5"
+          v-else-if="
+            user && !isFetchingRunningInvestments && !runningInvestments.length
+          "
+        >
+          you have no active investments
+        </div>
+        <div
+          class="mt-2 p-6 bg-[#F9FAFB] text-center flex items-center justify-center gap-1"
+          v-else
+        >
+          <span class="text-sm">Fetching investments</span>
+          <Loader />
         </div>
       </div>
     </div>

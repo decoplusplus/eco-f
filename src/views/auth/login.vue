@@ -32,7 +32,7 @@ const login = async () => {
         type: "success",
         position: "top",
       });
-      router.push({ name: "dashboard" });
+      window.location = window.location.origin;
     }
   } catch (error) {
     isLoading.value = false;

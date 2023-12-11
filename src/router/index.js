@@ -73,35 +73,35 @@ router.beforeEach((to, from, next) => {
   if (mainStore.fetchedInitialUser === true) {
     if (to.matched.some((record) => record.meta.requiresAuth)) {
       if (mainStore.isLoggedIn === false) {
-        next({ name: "login" });
+        return next({ name: "login" });
       } else {
-        next();
+        return next();
       }
     } else if (to.matched.some((record) => record.meta.guestOnly)) {
       if (mainStore.isLoggedIn === true) {
-        next({ name: "dashboard" });
+        return next({ name: "dashboard" });
       } else {
-        next();
+        return next();
       }
     } else {
-      next();
+      return next();
     }
   } else {
     mainStore.getUserDetails().then(() => {
       if (to.matched.some((record) => record.meta.requiresAuth)) {
         if (mainStore.isLoggedIn === false) {
-          next({ name: "login" });
+          return next({ name: "login" });
         } else {
-          next();
+          return next();
         }
       } else if (to.matched.some((record) => record.meta.guestOnly)) {
         if (mainStore.isLoggedIn === true) {
-          next({ name: "dashboard" });
+          return next({ name: "dashboard" });
         } else {
-          next();
+          return next();
         }
       } else {
-        next();
+        return next();
       }
     });
   }

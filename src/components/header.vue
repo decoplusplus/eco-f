@@ -27,11 +27,11 @@
       <div
         class="p-2 px-5 rounded-[20px] border-[0.6px] border-[#E4E7EC] md:flex hidden flex-row items-center gap-2"
       >
-        <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+        <!-- <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
         <span class="text-xs text-[#1E1E1EA3]">
           Copy referral url -
           <span class="text-green-700">www.greenbounty.net/ref_9200</span>
-        </span>
+        </span> -->
       </div>
     </nav>
   </header>
