@@ -16,19 +16,11 @@ const props = defineProps({
     type: Number,
     required: true,
   },
-  minimumInvestment: {
-    type: Number,
-    required: true,
-  },
   durationAsDays: {
     type: Number,
     required: true,
   },
   timeRemaining: {
-    type: Number,
-    required: true,
-  },
-  duration: {
     type: String,
     required: true,
   },
@@ -43,7 +35,9 @@ const props = defineProps({
       </div>
       <div class="flex flex-col">
         <div>Earnings</div>
-        <div class="font-medium text-xl mt-1">${{ profitsMade }}</div>
+        <div class="font-medium text-xl mt-1">
+          ${{ profitsMade?.toFixed(2) }}
+        </div>
       </div>
     </div>
     <div class="mt-3">

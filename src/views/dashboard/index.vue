@@ -28,12 +28,14 @@ const {
   runningInvestments,
   selectedPlan,
   isMakingInvestment,
+  isTransferingRefFunds,
 } = storeToRefs(dashboardStore);
 const {
   getPlanTemplates,
   getRunningInvestments,
   setSelectedPlan,
   makeInvestment,
+  transferRefFunds,
 } = dashboardStore;
 
 const handleFundInput = (e) => {
@@ -63,6 +65,32 @@ const toggleWithdrawModal = () => {
 };
 const toggleFundModal = () => {
   fundModal?.value?.toggleModal?.();
+};
+
+const handleFundsTransfer = () => {
+  transferRefFunds()
+    .then((e) => {
+      if (e?.status === "success") {
+        $toast.open({
+          message: "Transfer successful",
+          type: "success",
+          position: "top",
+        });
+      } else {
+        $toast.open({
+          message: e?.message ?? "Something went wrong",
+          type: "error",
+          position: "top",
+        });
+      }
+    })
+    .catch((e) => {
+      $toast.open({
+        message: e?.response?.data?.message ?? "Something went wrong",
+        type: "error",
+        position: "top",
+      });
+    });
 };
 
 const toggleInvestModal = ({ projectId }) => {
@@ -194,10 +222,22 @@ onMounted(() => {
       <div
         class="rounded-lg p-5 border-[#E4E7EC] border-[0.6px] lg:w-[calc(33%-8px)] md:w-[calc(50%-8px)] w-full"
       >
-        <h4 class="md:text-sm text-xs text-[#667085]">My Refferals</h4>
+        <div class="flex items-center justify-between">
+          <h4 class="md:text-sm text-xs text-[#667085]">My Refferals</h4>
+          <button
+            :disabled="isTransferingRefFunds"
+            @click="handleFundsTransfer"
+            class="text-xs w-[145px] text-white rounded-lg bg-[#00D99D] outline-none px-[14px] py-[10px] font-medium flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            <span v-if="!isTransferingRefFunds"> Transfer to balance</span>
+            <div v-else class="w-4 h-4 flex items-center justify-center">
+              <Loader />
+            </div>
+          </button>
+        </div>
         <div class="flex items-center justify-between">
           <div class="font-semibold md:text-2xl text-xl mt-2">
-            {{ user?.balance }}
+            ${{ user?.referralBalance }}
           </div>
           <span class="text-[#1E1E1E7A] md:text-sm text-xs"
             >{{ user?.totalReferrals }} Referrals</span

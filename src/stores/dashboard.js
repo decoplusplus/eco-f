@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import axios from "../service/axios";
+import useMainStore from "./user";
 
 const useDashboardStore = defineStore("dashboard", {
   state: () => ({
@@ -13,6 +14,7 @@ const useDashboardStore = defineStore("dashboard", {
     isFetchingRunningInvestments: false,
     selectedPlan: null,
     isMakingInvestment: false,
+    isTransferingRefFunds: false,
   }),
   actions: {
     async setSelectedPlan(plan) {
@@ -75,6 +77,24 @@ const useDashboardStore = defineStore("dashboard", {
         console.log(error);
       }
       this.isFetchingTransactions = false;
+    },
+    async transferRefFunds() {
+      this.isTransferingRefFunds = true;
+      try {
+        const { data } = await axios.post("/user/transfer-ref-funds");
+        this.isTransferingRefFunds = false;
+
+        if (data?.status === "success") {
+          const mainStore = useMainStore();
+          mainStore.user = { ...mainStore.user, ...data?.data };
+          return data;
+        } else {
+          throw data;
+        }
+      } catch (error) {
+        this.isTransferingRefFunds = false;
+        throw error;
+      }
     },
   },
 });
