@@ -4,12 +4,16 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  dailyInterest: {
+  projectId: {
     type: String,
     required: true,
   },
+  dailyInterest: {
+    type: Number,
+    required: true,
+  },
   minimumInvestment: {
-    type: String,
+    type: Number,
     required: true,
   },
   duration: {
@@ -17,6 +21,12 @@ const props = defineProps({
     required: true,
   },
 });
+//  setup and emit for invest-click
+const emit = defineEmits(["invest-click"]);
+
+const handleInvestClick = () => {
+  emit("invest-click", { projectId: props.projectId });
+};
 </script>
 
 <template>
@@ -56,6 +66,7 @@ const props = defineProps({
       <span class="text-ellipsis text-end text-[#027A48]">{{ duration }}</span>
     </div>
     <button
+      @click="handleInvestClick"
       class="text-xs disabled:cursor-not-allowed disabled:opacity-70 text-white rounded-lg bg-[#00D99D] outline-none mt-2 px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
     >
       <span> Invest </span>

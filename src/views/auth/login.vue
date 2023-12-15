@@ -7,7 +7,6 @@ import { useRouter } from "vue-router";
 
 const isLoading = ref(false);
 const $toast = useToast();
-const router = useRouter();
 
 const formData = ref({
   email: "",

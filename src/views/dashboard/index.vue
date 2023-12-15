@@ -1,13 +1,24 @@
 <script setup>
 import useMainStore from "@/stores/user";
 import useDashboardStore from "@/stores/dashboard";
-import TradeItemCard from "@/components/dashboard/trade-item-card.vue";
+import InvestmentItemCard from "@/components/dashboard/investment-item-card.vue";
 import { storeToRefs } from "pinia";
 import { useToast } from "vue-toast-notification";
 import ActiveInvestmentCard from "@/components/dashboard/active-investment-card.vue";
-import { onMounted, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import Loader from "@/components/loader.vue";
+import Modal from "@/components/modal.vue";
 const { user, firstName, refLink, isLoggedIn } = storeToRefs(useMainStore());
+
+const $toast = useToast();
+const fundModal = ref(null);
+const investModal = ref(null);
+const withdrawModal = ref(null);
+const investAmount = ref(null);
+const amountToFund = ref(null);
+const withdrawalAddress = ref(null);
+const amountToWithdraw = ref(null);
+const amountAfterDuration = ref(null);
 
 const dashboardStore = useDashboardStore();
 const {
@@ -15,9 +26,28 @@ const {
   isFetchingRunningInvestments,
   planTemplates,
   runningInvestments,
+  selectedPlan,
+  isMakingInvestment,
 } = storeToRefs(dashboardStore);
-const { getPlanTemplates, getRunningInvestments } = dashboardStore;
-const $toast = useToast();
+const {
+  getPlanTemplates,
+  getRunningInvestments,
+  setSelectedPlan,
+  makeInvestment,
+} = dashboardStore;
+
+const handleFundInput = (e) => {
+  amountToFund.value = null;
+  amountToFund.value = Number(e.target.value.replace(/[^0-9]/g, ""));
+};
+const handleInput = (e) => {
+  investAmount.value = null;
+  investAmount.value = Number(e.target.value.replace(/[^0-9]/g, ""));
+};
+const handleWithdrawInput = (e) => {
+  amountToWithdraw.value = null;
+  amountToWithdraw.value = Number(e.target.value.replace(/[^0-9]/g, ""));
+};
 
 const handleCopy = () => {
   navigator.clipboard.writeText(refLink.value);
@@ -27,6 +57,54 @@ const handleCopy = () => {
     position: "top",
   });
 };
+
+const toggleWithdrawModal = () => {
+  withdrawModal?.value?.toggleModal?.();
+};
+const toggleFundModal = () => {
+  fundModal?.value?.toggleModal?.();
+};
+
+const toggleInvestModal = ({ projectId }) => {
+  investModal?.value?.toggleModal?.();
+  if (projectId)
+    setSelectedPlan(planTemplates.value.find((item) => item._id === projectId));
+};
+
+const handleInvestmentButtonClick = () => {
+  makeInvestment({
+    amount: investAmount.value,
+    planId: selectedPlan.value._id,
+  })
+    .then((e) => {
+      if (e?.status === "success") {
+        $toast.open({
+          message: "Investment successful",
+          type: "success",
+          position: "top",
+        });
+        investModal?.value?.toggleModal?.();
+      }
+    })
+    .catch((e) => {
+      $toast.open({
+        message: e?.response?.data?.message ?? "Something went wrong",
+        type: "error",
+        position: "top",
+      });
+    });
+};
+
+watch(investAmount, (value) => {
+  if (value && selectedPlan.value) {
+    amountAfterDuration.value = (
+      value +
+      (selectedPlan?.value?.dailyInterestPercentage / 100) *
+        value *
+        selectedPlan?.value?.durationInDays
+    ).toFixed(2);
+  }
+});
 
 onMounted(() => {
   if (isLoggedIn.value === true && user.value?._id) {
@@ -50,6 +128,7 @@ onMounted(() => {
     </p>
     <div class="max-w-sm w-full flex items-center justify-between gap-2">
       <button
+        @click="toggleFundModal"
         class="hover:opacity-90 transition-all duration-150 w-full rounded-lg border-[0.6px] border-[#D0D5DD] p-2 pointer flex items-center justify-center gap-2 flex-row"
       >
         <span
@@ -72,6 +151,7 @@ onMounted(() => {
         <span class="font-medium md:text-sm text-xs">Add Funds</span>
       </button>
       <button
+        @click="toggleWithdrawModal"
         class="hover:opacity-90 transition-all duration-150 w-full rounded-lg border-[0.6px] text-white border-[#00D99D] bg-[#00D99D] p-2 pointer flex items-center justify-center gap-2 flex-row"
       >
         <span
@@ -106,9 +186,9 @@ onMounted(() => {
       <div
         class="rounded-lg p-5 border-[#E4E7EC] border-[0.6px] lg:w-[calc(33%-8px)] md:w-[calc(50%-8px)] w-full"
       >
-        <h4 class="md:text-sm text-xs text-[#667085]">Open trades</h4>
+        <h4 class="md:text-sm text-xs text-[#667085]">Open investments</h4>
         <div class="font-semibold md:text-2xl text-xl mt-2">
-          {{ user?.openTrades }}
+          {{ user?.openInvestments }}
         </div>
       </div>
       <div
@@ -205,10 +285,12 @@ onMounted(() => {
               v-for="item in planTemplates"
               :key="item._id"
             >
-              <trade-item-card
+              <investment-item-card
+                @invest-click="toggleInvestModal"
                 :projectTitle="item.projectTitle"
                 :minimumInvestment="item.minimumAmountToTrade"
                 :duration="item.duration"
+                :projectId="item._id"
                 :dailyInterest="item.dailyInterestPercentage"
               />
             </div>
@@ -241,8 +323,19 @@ onMounted(() => {
           "
         >
           <div class="flex flex-row flex-wrap gap-2">
-            <div class="w-full">
-              <active-investment-card />
+            <div
+              class="w-full"
+              v-for="item in runningInvestments"
+              :key="item?._id"
+            >
+              <active-investment-card
+                :capital="item?.principal"
+                :project-title="item?.projectTitle"
+                :profitsMade="item?.profitsMade"
+                :durationAsDays="item?.durationAsDays"
+                :timeRemaining="item?.timeRemaining"
+                :dailyInterest="item?.dailyInterestPercentage"
+              />
             </div>
           </div>
         </div>
@@ -264,4 +357,144 @@ onMounted(() => {
       </div>
     </div>
   </main>
+  <Modal ref="fundModal">
+    <div>
+      <div class="flex items-center justify-between">
+        <h3 class="font-medium md:text-lg text-base">Add Funds</h3>
+        <button @click="toggleFundModal" class="text-[#667085] text-sm">
+          Close
+        </button>
+      </div>
+      <form @submit.prevent class="w-full">
+        <div class="mt-3">
+          <input
+            required
+            :value="amountToFund"
+            @input="handleFundInput"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]+"
+            class="text-xs text-[#667085] rounded-lg border-[0.6px] border-[#D0D5DD] outline-none w-full px-[14px] py-[10px]"
+            placeholder="Amount to fund (Min - $5)"
+          />
+        </div>
+        <button
+          class="text-xs text-white rounded-lg bg-[#00D99D] outline-none mt-3 px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
+        >
+          Fund
+        </button>
+      </form>
+    </div>
+  </Modal>
+  <Modal ref="withdrawModal">
+    <div>
+      <div class="flex items-center justify-between">
+        <h3 class="font-medium md:text-lg text-base">Withdraw</h3>
+        <button @click="toggleWithdrawModal" class="text-[#667085] text-sm">
+          Close
+        </button>
+      </div>
+      <form @submit.prevent class="w-full">
+        <div class="mt-3">
+          <input
+            required
+            :value="amountToWithdraw"
+            @input="handleWithdrawInput"
+            type="text"
+            class="text-xs text-[#667085] rounded-lg border-[0.6px] border-[#D0D5DD] outline-none w-full px-[14px] py-[10px]"
+            placeholder="Amount to withdraw"
+          />
+        </div>
+        <div class="mt-3">
+          <input
+            required
+            v-model="withdrawalAddress"
+            type="text"
+            class="text-xs text-[#667085] rounded-lg border-[0.6px] border-[#D0D5DD] outline-none w-full px-[14px] py-[10px]"
+            placeholder="withdrawal address - usdt-bep20"
+          />
+        </div>
+        <button
+          class="text-xs text-white rounded-lg bg-[#00D99D] outline-none mt-3 px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
+        >
+          Withdraw
+        </button>
+      </form>
+    </div>
+  </Modal>
+  <Modal ref="investModal" :close-on-backdrop-click="!isMakingInvestment">
+    <div class="">
+      <div
+        class="flex items-center justify-between mt-2 gap-2 font-medium md:text-base text-sm w-full"
+      >
+        <span class="">Project</span>
+        <span class="w-full text-ellipsis text-end">{{
+          selectedPlan?.projectTitle
+        }}</span>
+      </div>
+      <div
+        class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
+      >
+        <span class="text-[#667085]">Interest</span>
+        <span
+          class="text-ellipsis text-end bg-[#ECFDF3] text-[#027A48] px-2 py-1 rounded-2xl"
+          >{{ selectedPlan?.dailyInterestPercentage }}% daily</span
+        >
+      </div>
+      <div
+        class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
+      >
+        <span class="text-[#667085]">Minimum</span>
+        <span class="text-ellipsis text-end"
+          >${{ selectedPlan?.minimumAmountToTrade }}</span
+        >
+      </div>
+
+      <div
+        class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
+      >
+        <span class="text-[#667085]">Duration</span>
+        <span class="text-ellipsis text-end text-[#027A48]">{{
+          selectedPlan?.duration
+        }}</span>
+      </div>
+      <div
+        class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
+      >
+        <span class="text-[#667085]"
+          >Amount after {{ selectedPlan?.duration }}</span
+        >
+        <span class="text-ellipsis text-end" v-if="investAmount"
+          >${{ amountAfterDuration }}</span
+        >
+      </div>
+      <form @submit.prevent="handleInvestmentButtonClick" class="w-full">
+        <div class="mt-3">
+          <input
+            required
+            :value="investAmount"
+            type="text"
+            @input="handleInput"
+            inputmode="numeric"
+            pattern="[0-9]+"
+            class="text-xs text-[#667085] rounded-lg border-[0.6px] border-[#D0D5DD] outline-none w-full px-[14px] py-[10px]"
+            :placeholder="`Amount to invest (Min - $${selectedPlan?.minimumAmountToTrade})`"
+          />
+        </div>
+        <button
+          :disabled="
+            !investAmount ||
+            investAmount < selectedPlan?.minimumAmountToTrade ||
+            isMakingInvestment
+          "
+          class="text-xs disabled:cursor-not-allowed disabled:opacity-70 text-white rounded-lg bg-[#00D99D] outline-none mt-3 px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
+        >
+          <span v-if="!isMakingInvestment"> Invest </span>
+          <div v-else class="w-4 h-4 flex items-center justify-center">
+            <Loader />
+          </div>
+        </button>
+      </form>
+    </div>
+  </Modal>
 </template>

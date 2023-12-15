@@ -1,9 +1,9 @@
 <template>
-  <header class="border-b border-b-[#E4E7EC] sticky top-0 bg-white z-[999]">
+  <header class="border-b border-b-[#E4E7EC] sticky top-0 bg-white z-10">
     <nav
       class="p-5 max-w-[1300px] mx-auto w-full flex items-center justify-between"
     >
-      <a href="/">
+      <a href="/" class="sm:h-auto h-[20px]">
         <Logo class="w-full h-full object-cover" />
       </a>
       <ul class="md:flex hidden flex-row items-center gap-5">
