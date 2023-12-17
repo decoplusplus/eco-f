@@ -1,4 +1,7 @@
 <template>
+  <metainfo>
+    <template v-slot:title="{ content }">{{ content }}</template>
+  </metainfo>
   <main class="p-5 max-w-[1300px] mx-auto w-full">
     <div>
       <h3 class="font-semibold md:text-2xl text-xl">Transactions</h3>
@@ -41,6 +44,15 @@ import useDashboardStore from "@/stores/dashboard";
 import useUserStore from "@/stores/user";
 import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
+import { useMeta } from "vue-meta";
+
+useMeta({
+  title: "Transactions",
+  htmlAttrs: {
+    lang: "en",
+    amp: true,
+  },
+});
 
 const dashboardStore = useDashboardStore();
 

@@ -9,7 +9,16 @@ import { onMounted, ref, watch } from "vue";
 import Loader from "@/components/loader.vue";
 import CopyIcon from "@/components/icons/copy.vue";
 import Modal from "@/components/modal.vue";
+import { useMeta } from "vue-meta";
 const { user, firstName, refLink, isLoggedIn } = storeToRefs(useMainStore());
+
+useMeta({
+  title: "Dashboard",
+  htmlAttrs: {
+    lang: "en",
+    amp: true,
+  },
+});
 
 const $toast = useToast();
 const fundModal = ref(null);
@@ -39,11 +48,6 @@ const {
   makeInvestment,
   transferRefFunds,
 } = dashboardStore;
-
-// const handleFundInput = (e) => {
-//   amountToFund.value = null;
-//   amountToFund.value = Number(e.target.value.replace(/[^0-9]/g, ""));
-// };
 
 const handleGenerateDepositAddress = () => {
   generateDepositAddress()
@@ -175,6 +179,9 @@ onMounted(() => {
 </script>
 
 <template>
+  <metainfo>
+    <template v-slot:title="{ content }">{{ content }}</template>
+  </metainfo>
   <main class="p-5 max-w-[1300px] mx-auto w-full">
     <h2 class="font-medium md:text-2xl text-xl text-[#101828]">
       Welcome back,

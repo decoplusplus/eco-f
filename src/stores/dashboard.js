@@ -93,7 +93,6 @@ const useDashboardStore = defineStore("dashboard", {
         const { data } = await axios.get("/transaction/all");
         if (data?.status === "success") {
           this.transactions = data?.data?.transactions;
-          console.log(this.transactions);
         }
       } catch (error) {
         console.log(error);

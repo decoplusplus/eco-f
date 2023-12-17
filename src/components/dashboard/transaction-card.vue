@@ -4,7 +4,7 @@
       class="flex items-center justify-between mt-2 gap-2 font-medium md:text-base text-sm w-full"
     >
       <span class="">Type</span>
-      <span class="w-full text-ellipsis text-end">{{ type }}</span>
+      <span class="w-full text-ellipsis text-end capitalize">{{ type }}</span>
     </div>
     <div
       class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
@@ -51,11 +51,11 @@ const props = defineProps({
     required: true,
   },
   amount: {
-    type: String,
+    type: Number,
     required: true,
   },
   fee: {
-    type: String,
+    type: Number,
     // required: true,
   },
   date: {

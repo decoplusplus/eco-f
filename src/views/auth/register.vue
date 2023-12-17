@@ -4,6 +4,15 @@ import axios from "../../service/axios";
 import { useToast } from "vue-toast-notification";
 import Loader from "../../components/loader.vue";
 import { useRouter } from "vue-router";
+import { useMeta } from "vue-meta";
+
+useMeta({
+  title: "Register",
+  htmlAttrs: {
+    lang: "en",
+    amp: true,
+  },
+});
 
 const isLoading = ref(false);
 const $toast = useToast();
@@ -37,7 +46,6 @@ const register = async () => {
       router.push({ name: "login" });
     }
   } catch (error) {
-    console.log(error, "ppp");
     isLoading.value = false;
     $toast.open({
       message: error?.response?.data?.message ?? "Something went wrong",
@@ -48,6 +56,9 @@ const register = async () => {
 };
 </script>
 <template>
+  <metainfo>
+    <template v-slot:title="{ content }">{{ content }}</template>
+  </metainfo>
   <main class="p-5 max-w-[1300px] mx-auto w-full">
     <div class="max-w-sm mx-auto w-full md:mt-5">
       <h3 class="font-semibold md:text-2xl text-xl">Register</h3>

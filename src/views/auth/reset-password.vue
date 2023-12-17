@@ -4,6 +4,15 @@ import axios from "../../service/axios";
 import { useToast } from "vue-toast-notification";
 import Loader from "../../components/loader.vue";
 import { useRouter } from "vue-router";
+import { useMeta } from "vue-meta";
+
+useMeta({
+  title: "Reset Password",
+  htmlAttrs: {
+    lang: "en",
+    amp: true,
+  },
+});
 
 const isLoading = ref(false);
 const $toast = useToast();
@@ -50,7 +59,6 @@ const handleResetPassword = async () => {
     const selector = router.currentRoute.value.params.selector;
 
     if (!token || !selector) {
-      console.log(token, selector);
       $toast.open({
         message: "Invalid reset link",
         type: "error",
@@ -94,6 +102,9 @@ const handleResetPassword = async () => {
 };
 </script>
 <template>
+  <metainfo>
+    <template v-slot:title="{ content }">{{ content }}</template>
+  </metainfo>
   <main class="p-5 max-w-[1300px] mx-auto w-full">
     <div class="max-w-sm mx-auto w-full md:mt-5">
       <h3 class="font-semibold md:text-2xl text-xl">Reset password</h3>

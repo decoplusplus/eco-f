@@ -6,6 +6,16 @@ import axios from "../../service/axios";
 import { ref } from "vue";
 import { useToast } from "vue-toast-notification";
 
+import { useMeta } from "vue-meta";
+
+useMeta({
+  title: "Account Details",
+  htmlAttrs: {
+    lang: "en",
+    amp: true,
+  },
+});
+
 const { user, refLink } = storeToRefs(useMainStore());
 const $toast = useToast();
 const isLoading = ref(false);
@@ -92,6 +102,9 @@ const updatePassword = () => {
 };
 </script>
 <template>
+  <metainfo>
+    <template v-slot:title="{ content }">{{ content }}</template>
+  </metainfo>
   <main class="p-5 max-w-[1300px] mx-auto w-full">
     <div class="account-card w-full flex flex-col gap-[10px]">
       <div class="border-[#E4E7EC]">
