@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import axios from "../../service/axios";
 import { useToast } from "vue-toast-notification";
 import Loader from "../../components/loader.vue";
@@ -23,6 +23,7 @@ const formData = ref({
   email: "",
   password: "",
   confirmPassword: "",
+  referer: "",
 });
 
 const register = async () => {
@@ -54,6 +55,18 @@ const register = async () => {
     });
   }
 };
+
+watch(router.currentRoute, (route) => {
+  console.log(route);
+});
+
+onMounted(() => {
+  const refId = router.currentRoute.value.query.ref;
+  console.log(router.currentRoute.value.query);
+  if (refId) {
+    formData.value.referer = refId;
+  }
+});
 </script>
 <template>
   <metainfo>
@@ -101,6 +114,15 @@ const register = async () => {
               class="text-xs text-[#667085] rounded-lg border-[0.6px] border-[#D0D5DD] outline-none w-full px-[14px] py-[10px]"
               placeholder="Confirm Password"
               v-model="formData.confirmPassword"
+            />
+          </div>
+          <div class="mt-3">
+            <input
+              required
+              type="text"
+              class="text-xs text-[#667085] rounded-lg border-[0.6px] border-[#D0D5DD] outline-none w-full px-[14px] py-[10px]"
+              placeholder="Referer ID (Optional)"
+              v-model="formData.referer"
             />
           </div>
           <div class="mt-3">
