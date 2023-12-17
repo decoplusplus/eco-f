@@ -26,6 +26,14 @@ const router = createRouter({
           },
           component: () => import("../views/dashboard/transactions.vue"),
         },
+        {
+          path: "account",
+          name: "account",
+          meta: {
+            requiresAuth: true,
+          },
+          component: () => import("../views/dashboard/account.vue"),
+        },
       ],
     },
     {
