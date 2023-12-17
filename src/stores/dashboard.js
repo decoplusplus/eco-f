@@ -16,11 +16,36 @@ const useDashboardStore = defineStore("dashboard", {
     isMakingInvestment: false,
     isTransferingRefFunds: false,
     isGeneratingDepositAddress: false,
+    isWithdrawing: false,
   }),
   actions: {
     async setSelectedPlan(plan) {
       this.selectedPlan = plan;
     },
+    async withdraw({ amount, address }) {
+      this.isWithdrawing = true;
+      try {
+        const { data } = await axios.post("/user/withdraw", {
+          amount,
+          address,
+        });
+        this.isWithdrawing = false;
+        if (data?.status === "success") {
+          const mainStore = useMainStore();
+          mainStore.user = {
+            ...mainStore.user,
+            balance: data?.data?.balance,
+          };
+          return data;
+        } else {
+          throw data;
+        }
+      } catch (error) {
+        this.isWithdrawing = false;
+        throw error;
+      }
+    },
+
     async getPlanTemplates() {
       this.isFetchingPlanTemplates = true;
       try {

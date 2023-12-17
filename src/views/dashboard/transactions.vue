@@ -7,10 +7,12 @@
       <h3 class="font-semibold md:text-2xl text-xl">Transactions</h3>
       <div class="mt-3">
         <div v-if="user && !isFetchingTransactions && transactions.length">
-          <div class="mb-2">
+          <div
+            class="mb-2"
+            v-for="transaction in transactions"
+            :key="transaction._id"
+          >
             <TransactionCard
-              v-for="transaction in transactions"
-              :key="transaction._id"
               :amount="transaction?.amount"
               :fee="transaction?.fee"
               :status="transaction?.status"

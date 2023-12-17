@@ -38,6 +38,7 @@ const {
   selectedPlan,
   isMakingInvestment,
   isTransferingRefFunds,
+  isWithdrawing,
   isGeneratingDepositAddress,
 } = storeToRefs(dashboardStore);
 const {
@@ -47,7 +48,40 @@ const {
   setSelectedPlan,
   makeInvestment,
   transferRefFunds,
+  withdraw,
 } = dashboardStore;
+
+const handleWithdraw = () => {
+  withdraw({
+    amount: amountToWithdraw.value,
+    address: withdrawalAddress.value,
+  })
+    .then((e) => {
+      if (e?.status === "success") {
+        $toast.open({
+          message: "Withdrawal successful",
+          type: "success",
+          position: "top",
+        });
+        toggleWithdrawModal();
+        withdrawalAddress.value = "";
+        amountToWithdraw.value = "";
+      } else {
+        $toast.open({
+          message: e?.message ?? "Something went wrong",
+          type: "error",
+          position: "top",
+        });
+      }
+    })
+    .catch((e) => {
+      $toast.open({
+        message: e?.response?.data?.message ?? "Something went wrong",
+        type: "error",
+        position: "top",
+      });
+    });
+};
 
 const handleGenerateDepositAddress = () => {
   generateDepositAddress()
@@ -490,7 +524,7 @@ onMounted(() => {
       </div>
     </div>
   </Modal>
-  <Modal ref="withdrawModal">
+  <Modal ref="withdrawModal" :close-on-backdrop-click="!isWithdrawing">
     <div>
       <div class="flex items-center justify-between">
         <h3 class="font-medium md:text-lg text-base">Withdraw</h3>
@@ -498,7 +532,7 @@ onMounted(() => {
           Close
         </button>
       </div>
-      <form @submit.prevent class="w-full">
+      <form @submit.prevent="handleWithdraw" class="w-full">
         <div class="mt-3">
           <input
             required
@@ -519,9 +553,13 @@ onMounted(() => {
           />
         </div>
         <button
-          class="text-xs text-white rounded-lg bg-[#00D99D] outline-none mt-3 px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
+          :disabled="isWithdrawing"
+          class="text-xs disabled:cursor-not-allowed disabled:opacity-70 text-white rounded-lg bg-[#00D99D] outline-none mt-3 px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
         >
-          Withdraw
+          <span v-if="!isWithdrawing">Withdraw </span>
+          <div v-else class="w-4 h-4 flex items-center justify-center">
+            <Loader />
+          </div>
         </button>
       </form>
     </div>
