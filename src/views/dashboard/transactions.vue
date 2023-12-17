@@ -8,7 +8,11 @@
             <TransactionCard
               v-for="transaction in transactions"
               :key="transaction._id"
-              :transaction="transaction"
+              :amount="transaction?.amount"
+              :fee="transaction?.fee"
+              :status="transaction?.status"
+              :type="transaction?.type"
+              :date="transaction?.date"
             />
           </div>
         </div>

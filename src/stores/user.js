@@ -8,8 +8,16 @@ const useMainStore = defineStore("main", {
     isGettingUser: false,
     fetchedInitialUser: false,
     isFetchingInitialUser: false,
+    isSidebarOpened: false,
   }),
   actions: {
+    toggleSidebar(payload) {
+      if (payload !== undefined && typeof payload === "boolean") {
+        this.isSidebarOpened = payload;
+        return;
+      }
+      this.isSidebarOpened = !this.isSidebarOpened;
+    },
     async getUserDetails() {
       this.isGettingUser = true;
 

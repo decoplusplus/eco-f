@@ -7,6 +7,7 @@ import { useToast } from "vue-toast-notification";
 import ActiveInvestmentCard from "@/components/dashboard/active-investment-card.vue";
 import { onMounted, ref, watch } from "vue";
 import Loader from "@/components/loader.vue";
+import CopyIcon from "@/components/icons/copy.vue";
 import Modal from "@/components/modal.vue";
 const { user, firstName, refLink, isLoggedIn } = storeToRefs(useMainStore());
 
@@ -15,7 +16,6 @@ const fundModal = ref(null);
 const investModal = ref(null);
 const withdrawModal = ref(null);
 const investAmount = ref(null);
-const amountToFund = ref(null);
 const withdrawalAddress = ref(null);
 const amountToWithdraw = ref(null);
 const amountAfterDuration = ref(null);
@@ -29,8 +29,10 @@ const {
   selectedPlan,
   isMakingInvestment,
   isTransferingRefFunds,
+  isGeneratingDepositAddress,
 } = storeToRefs(dashboardStore);
 const {
+  generateDepositAddress,
   getPlanTemplates,
   getRunningInvestments,
   setSelectedPlan,
@@ -38,10 +40,37 @@ const {
   transferRefFunds,
 } = dashboardStore;
 
-const handleFundInput = (e) => {
-  amountToFund.value = null;
-  amountToFund.value = Number(e.target.value.replace(/[^0-9]/g, ""));
+// const handleFundInput = (e) => {
+//   amountToFund.value = null;
+//   amountToFund.value = Number(e.target.value.replace(/[^0-9]/g, ""));
+// };
+
+const handleGenerateDepositAddress = () => {
+  generateDepositAddress()
+    .then((e) => {
+      if (e?.status === "success") {
+        $toast.open({
+          message: "Address generated successfully",
+          type: "success",
+          position: "top",
+        });
+      } else {
+        $toast.open({
+          message: e?.message ?? "Something went wrong",
+          type: "error",
+          position: "top",
+        });
+      }
+    })
+    .catch((e) => {
+      $toast.open({
+        message: e?.response?.data?.message ?? "Something went wrong",
+        type: "error",
+        position: "top",
+      });
+    });
 };
+
 const handleInput = (e) => {
   investAmount.value = null;
   investAmount.value = Number(e.target.value.replace(/[^0-9]/g, ""));
@@ -51,10 +80,10 @@ const handleWithdrawInput = (e) => {
   amountToWithdraw.value = Number(e.target.value.replace(/[^0-9]/g, ""));
 };
 
-const handleCopy = () => {
-  navigator.clipboard.writeText(refLink.value);
+const handleCopy = (itemToCopy) => {
+  navigator.clipboard.writeText(itemToCopy);
   $toast.open({
-    message: "referral link copied to clipboard",
+    message: "Copied to clipboard",
     type: "success",
     position: "top",
   });
@@ -248,7 +277,7 @@ onMounted(() => {
           <div
             id="refLinkWrapper"
             class="flex items-center cursor-pointer"
-            @click="handleCopy"
+            @click="handleCopy(refLink)"
           >
             <span
               id="refLinkItem"
@@ -397,33 +426,61 @@ onMounted(() => {
       </div>
     </div>
   </main>
-  <Modal ref="fundModal">
+  <Modal ref="fundModal" :close-on-backdrop-click="!isGeneratingDepositAddress">
     <div>
       <div class="flex items-center justify-between">
         <h3 class="font-medium md:text-lg text-base">Add Funds</h3>
-        <button @click="toggleFundModal" class="text-[#667085] text-sm">
+        <button
+          @click="toggleFundModal"
+          :disabled="isGeneratingDepositAddress"
+          class="text-[#667085] text-sm"
+        >
           Close
         </button>
       </div>
-      <form @submit.prevent class="w-full">
-        <div class="mt-3">
-          <input
-            required
-            :value="amountToFund"
-            @input="handleFundInput"
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]+"
-            class="text-xs text-[#667085] rounded-lg border-[0.6px] border-[#D0D5DD] outline-none w-full px-[14px] py-[10px]"
-            placeholder="Amount to fund (Min - $5)"
-          />
+
+      <div class="mt-3">
+        <div class="w-full" v-if="user?.depositAddress">
+          <div
+            class="address-section flex items-center justify-between w-full gap-5 my-3"
+          >
+            <span
+              class="text-[#667085] text-base overflow-hidden w-[calc(100%-50px)] text-ellipsis whitespace-pre-wrap"
+              >{{ user?.depositAddress }}</span
+            >
+            <button
+              @click="handleCopy(user?.depositAddress)"
+              class="outline-none border-none bg-transparent w-[25px] h-[25px]"
+            >
+              <CopyIcon />
+            </button>
+          </div>
+          <div
+            class="minimum-deposit-warning p-2 bg-[#f8d7da] text-[#58151c] border-[#f1aeb5] border rounded-lg"
+          >
+            <span class="text-[#667085] text-xs bg-ye">
+              This is your deposit wallet address. You must only deposit USDT
+              BEP20 to this address.<br />
+              The minimum deposit is $1, any amount less than $1 will not be
+              reflected in your account.
+            </span>
+          </div>
         </div>
-        <button
-          class="text-xs text-white rounded-lg bg-[#00D99D] outline-none mt-3 px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
-        >
-          Fund
-        </button>
-      </form>
+        <div class="w-full" v-else>
+          <button
+            @click="handleGenerateDepositAddress"
+            :disabled="isGeneratingDepositAddress"
+            class="hover:opacity-90 transition-all duration-150 w-full rounded-lg border-[0.6px] text-white border-[#00D99D] bg-[#00D99D] p-2 pointer flex items-center justify-center gap-2 flex-row"
+          >
+            <span v-if="!isGeneratingDepositAddress">
+              Generate deposit address
+            </span>
+            <div v-else class="w-4 h-4 flex items-center justify-center">
+              <Loader />
+            </div>
+          </button>
+        </div>
+      </div>
     </div>
   </Modal>
   <Modal ref="withdrawModal">

@@ -15,6 +15,7 @@ const useDashboardStore = defineStore("dashboard", {
     selectedPlan: null,
     isMakingInvestment: false,
     isTransferingRefFunds: false,
+    isGeneratingDepositAddress: false,
   }),
   actions: {
     async setSelectedPlan(plan) {
@@ -31,6 +32,27 @@ const useDashboardStore = defineStore("dashboard", {
         console.log(error);
       }
       this.isFetchingPlanTemplates = false;
+    },
+    async generateDepositAddress() {
+      this.isGeneratingDepositAddress = true;
+      try {
+        const { data } = await axios.post("/user/generate-address");
+        this.isGeneratingDepositAddress = false;
+        if (data?.status === "success") {
+          const mainStore = useMainStore();
+          mainStore.user = {
+            ...mainStore.user,
+            depositAddress: data?.data?.depositAddress,
+          };
+          return data;
+        } else {
+          throw data;
+        }
+      } catch (error) {
+        console.log(error);
+        this.isGeneratingDepositAddress = false;
+        throw error;
+      }
     },
     async makeInvestment({ amount, planId }) {
       this.isMakingInvestment = true;
