@@ -118,7 +118,6 @@ onMounted(() => {
           </div>
           <div class="mt-3">
             <input
-              required
               type="text"
               class="text-xs text-[#667085] rounded-lg border-[0.6px] border-[#D0D5DD] outline-none w-full px-[14px] py-[10px]"
               placeholder="Referer ID (Optional)"
