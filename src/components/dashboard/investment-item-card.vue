@@ -70,9 +70,6 @@ const handleInvestClick = () => {
       class="text-xs disabled:cursor-not-allowed disabled:opacity-70 text-white rounded-lg bg-[#00D99D] outline-none mt-2 px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
     >
       <span> Invest </span>
-      <!-- <div v-else class="w-4 h-4 flex items-center justify-center">
-        <Loader />
-      </div> -->
     </button>
   </div>
 </template>

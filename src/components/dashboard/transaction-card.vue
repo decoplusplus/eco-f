@@ -56,7 +56,6 @@ const props = defineProps({
   },
   fee: {
     type: Number,
-    // required: true,
   },
   date: {
     type: String,

@@ -52,6 +52,13 @@
         >
           Help</router-link
         >
+        <button
+          @click="handleLogoutClick"
+          class="flex items-center gap-3 rounded-[4px] px-[10px] py-[.6rem] cursor-pointer hover:bg-[#F5F7F9] duration-400 my-[2px]"
+          to="/account"
+        >
+          Logout
+        </button>
       </div>
     </div>
   </aside>
@@ -69,5 +76,15 @@ aside {
 </style>
 <script setup>
 import useMainStore from "@/stores/user";
+import { ref } from "vue";
+
+const props = defineProps({
+  toggleLogoutModal: Function,
+});
+
 const { toggleSidebar } = useMainStore();
+const handleLogoutClick = async () => {
+  toggleSidebar();
+  props?.toggleLogoutModal();
+};
 </script>
