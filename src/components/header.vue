@@ -4,7 +4,11 @@
       class="p-5 max-w-[1300px] mx-auto w-full flex items-center justify-between"
     >
       <a href="/" class="sm:h-auto h-[20px]">
-        <Logo class="w-full h-full object-cover" />
+        <img
+          src="../assets/images/eco-logo.png"
+          alt="Logo"
+          class="w-full h-full object-cover"
+        />
       </a>
 
       <div>
