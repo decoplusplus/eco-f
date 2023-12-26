@@ -1,6 +1,6 @@
 <script setup>
 const props = defineProps({
-  projectTitle: {
+  name: {
     type: String,
     required: true,
   },
@@ -44,8 +44,8 @@ const props = defineProps({
       <div
         class="flex w-full items-center justify-between text-white text-sm font-medium mb-2"
       >
-        <span>Project</span>
-        <span>{{ projectTitle }}</span>
+        <span>Company</span>
+        <span>{{ name }}</span>
       </div>
       <div
         class="flex w-full items-center justify-between text-white text-xs mb-2"

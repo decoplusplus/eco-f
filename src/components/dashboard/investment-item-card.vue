@@ -1,6 +1,20 @@
 <script setup>
+import Check from "@/components/icons/check.vue";
+
 const props = defineProps({
-  projectTitle: {
+  name: {
+    type: String,
+    required: true,
+  },
+  logo: {
+    type: String,
+    required: true,
+  },
+  isVerified: {
+    type: Boolean,
+    required: true,
+  },
+  location: {
     type: String,
     required: true,
   },
@@ -16,7 +30,7 @@ const props = defineProps({
     type: Number,
     required: true,
   },
-  duration: {
+  minimumDuration: {
     type: String,
     required: true,
   },
@@ -41,8 +55,25 @@ const handleInvestClick = () => {
     <div
       class="flex items-center justify-between mt-2 gap-2 font-medium md:text-base text-sm w-full"
     >
-      <span class="">Project</span>
-      <span class="w-full text-ellipsis text-end">{{ projectTitle }}</span>
+      <!-- <div class="flex flex-row items-start justify-between gap-2"> -->
+      <div class="flex flex-row gap-2 items-center">
+        <div class="w-10 h-10 rounded bg-gray-50">
+          <img :src="logo" class="w-full h-full rounded" alt="item" />
+        </div>
+        <div class="flex flex-row justify-between item-start">
+          <div class="flex flex-col">
+            <div class="flex flex-row items-center gap-1">
+              <span class="font-medium text-sm text-[#101828]">{{ name }}</span>
+              <div class="w-4 h-4" v-if="isVerified">
+                <Check />
+              </div>
+            </div>
+            <span class="text-xs leading-[10px] font-normal mt-2">{{
+              location
+            }}</span>
+          </div>
+        </div>
+      </div>
     </div>
     <div
       class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
@@ -56,20 +87,24 @@ const handleInvestClick = () => {
     <div
       class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
     >
-      <span class="text-[#667085]">Minimum</span>
+      <span class="text-[#667085]">Minimum Investment</span>
       <span class="text-ellipsis text-end">${{ minimumInvestment }}</span>
     </div>
     <div
       class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
     >
-      <span class="text-[#667085]">Duration</span>
-      <span class="text-ellipsis text-end text-[#027A48]">{{ duration }}</span>
+      <span class="text-[#667085]">Minimum Duration</span>
+      <span class="text-ellipsis text-end text-[#027A48]">{{
+        minimumDuration
+      }}</span>
     </div>
-    <button
-      @click="handleInvestClick"
-      class="text-xs disabled:cursor-not-allowed disabled:opacity-70 text-white rounded-lg bg-[#00D99D] outline-none mt-2 px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
-    >
-      <span> Invest </span>
-    </button>
+    <div class="flex flex-row gap-1">
+      <button
+        @click="handleInvestClick"
+        class="text-xs disabled:cursor-not-allowed disabled:opacity-70 text-white rounded-lg bg-[#00D99D] outline-none mt-2 px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
+      >
+        <span> Invest </span>
+      </button>
+    </div>
   </div>
 </template>

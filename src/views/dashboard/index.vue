@@ -9,6 +9,7 @@ import { onMounted, ref, watch } from "vue";
 import Loader from "@/components/loader.vue";
 import CopyIcon from "@/components/icons/copy.vue";
 import Modal from "@/components/modal.vue";
+import Check from "@/components/icons/check.vue";
 import { useMeta } from "vue-meta";
 const { user, firstName, refLink, isLoggedIn } = storeToRefs(useMainStore());
 
@@ -28,6 +29,7 @@ const investAmount = ref(null);
 const withdrawalAddress = ref(null);
 const amountToWithdraw = ref(null);
 const amountAfterDuration = ref(null);
+const selectedDuration = ref(null);
 
 const dashboardStore = useDashboardStore();
 const {
@@ -162,14 +164,20 @@ const handleFundsTransfer = () => {
 
 const toggleInvestModal = ({ projectId }) => {
   investModal?.value?.toggleModal?.();
-  if (projectId)
+  selectedDuration.value = null;
+  if (projectId) {
     setSelectedPlan(planTemplates.value.find((item) => item._id === projectId));
+    selectedDuration.value = planTemplates.value.find(
+      (item) => item._id === projectId
+    )?.tradeableDurations[0];
+  }
 };
 
 const handleInvestmentButtonClick = () => {
   makeInvestment({
     amount: investAmount.value,
     planId: selectedPlan.value._id,
+    duration: selectedDuration.value,
   })
     .then((e) => {
       if (e?.status === "success") {
@@ -190,13 +198,13 @@ const handleInvestmentButtonClick = () => {
     });
 };
 
-watch(investAmount, (value) => {
-  if (value && selectedPlan.value) {
+watch([investAmount, selectedDuration], ([value1, value2]) => {
+  if (value1 && selectedPlan.value && value2 && selectedPlan.value) {
     amountAfterDuration.value = (
-      value +
+      value1 +
       (selectedPlan?.value?.dailyInterestPercentage / 100) *
-        value *
-        selectedPlan?.value?.durationInDays
+        value1 *
+        parseInt(value2)
     ).toFixed(2);
   }
 });
@@ -278,7 +286,7 @@ onMounted(() => {
       >
         <h4 class="md:text-sm text-xs">Wallet balance</h4>
         <div class="font-semibold md:text-2xl text-xl mt-2">
-          ${{ user?.balance }}
+          ${{ user?.balance?.toFixed(2) }}
         </div>
       </div>
       <div
@@ -379,11 +387,12 @@ onMounted(() => {
     <div class="mt-6 flex gap-4 md:flex-row flex-col-reverse">
       <div class="md:w-[60%] lg:w-[70%] w-full md:mt-0 mt-5">
         <h3 class="font-medium md:text-lg text-base">
-          Explore Sustainable Opportunities
+          Explore Companies to Invest In
         </h3>
         <p class="my-3 text-[#667085] max-w-lg w-full md:text-base text-sm">
-          Discover a range of impactful green eco programs designed to align
-          your investments with environmental sustainability.
+          Here, you'll find a selection of exceptional green energy companies.
+          These companies are making waves in sustainability, and you can be a
+          part of their journey.
         </p>
         <div
           class="mt-2"
@@ -396,10 +405,13 @@ onMounted(() => {
               :key="item._id"
             >
               <investment-item-card
+                :name="item?.name"
+                :logo="item?.logo"
+                :location="item?.location"
                 @invest-click="toggleInvestModal"
-                :projectTitle="item.projectTitle"
+                :isVerified="item.isVerified"
                 :minimumInvestment="item.minimumAmountToTrade"
-                :duration="item.duration"
+                :minimumDuration="item.minimumDuration"
                 :projectId="item._id"
                 :dailyInterest="item.dailyInterestPercentage"
               />
@@ -440,7 +452,7 @@ onMounted(() => {
             >
               <active-investment-card
                 :capital="item?.principal"
-                :project-title="item?.projectTitle"
+                :name="item?.name"
                 :profitsMade="item?.profitsMade"
                 :durationAsDays="item?.durationAsDays"
                 :timeRemaining="item?.timeRemaining"
@@ -566,77 +578,128 @@ onMounted(() => {
   </Modal>
   <Modal ref="investModal" :close-on-backdrop-click="!isMakingInvestment">
     <div class="">
-      <div
-        class="flex items-center justify-between mt-2 gap-2 font-medium md:text-base text-sm w-full"
-      >
-        <span class="">Project</span>
-        <span class="w-full text-ellipsis text-end">{{
-          selectedPlan?.projectTitle
-        }}</span>
-      </div>
-      <div
-        class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
-      >
-        <span class="text-[#667085]">Interest</span>
-        <span
-          class="text-ellipsis text-end bg-[#ECFDF3] text-[#027A48] px-2 py-1 rounded-2xl"
-          >{{ selectedPlan?.dailyInterestPercentage }}% daily</span
-        >
-      </div>
-      <div
-        class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
-      >
-        <span class="text-[#667085]">Minimum</span>
-        <span class="text-ellipsis text-end"
-          >${{ selectedPlan?.minimumAmountToTrade }}</span
-        >
-      </div>
-
-      <div
-        class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
-      >
-        <span class="text-[#667085]">Duration</span>
-        <span class="text-ellipsis text-end text-[#027A48]">{{
-          selectedPlan?.duration
-        }}</span>
-      </div>
-      <div
-        class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
-      >
-        <span class="text-[#667085]"
-          >Amount after {{ selectedPlan?.duration }}</span
-        >
-        <span class="text-ellipsis text-end" v-if="investAmount"
-          >${{ amountAfterDuration }}</span
-        >
-      </div>
-      <form @submit.prevent="handleInvestmentButtonClick" class="w-full">
-        <div class="mt-3">
-          <input
-            required
-            :value="investAmount"
-            type="text"
-            @input="handleInput"
-            inputmode="numeric"
-            pattern="[0-9]+"
-            class="text-xs text-[#667085] rounded-lg border-[0.6px] border-[#D0D5DD] outline-none w-full px-[14px] py-[10px]"
-            :placeholder="`Amount to invest (Min - $${selectedPlan?.minimumAmountToTrade})`"
+      <div class="flex flex-row gap-2 items-center">
+        <div class="w-10 h-10 rounded bg-gray-50">
+          <img
+            :src="selectedPlan?.logo"
+            class="w-full h-full rounded"
+            alt="item"
           />
         </div>
-        <button
-          :disabled="
-            !investAmount ||
-            investAmount < selectedPlan?.minimumAmountToTrade ||
-            isMakingInvestment
-          "
-          class="text-xs disabled:cursor-not-allowed disabled:opacity-70 text-white rounded-lg bg-[#00D99D] outline-none mt-3 px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
-        >
-          <span v-if="!isMakingInvestment"> Invest </span>
-          <div v-else class="w-4 h-4 flex items-center justify-center">
-            <Loader />
+        <div class="flex flex-row justify-between item-start">
+          <div class="flex flex-col">
+            <div class="flex flex-row items-center gap-1">
+              <span class="font-medium text-sm text-[#101828]">{{
+                selectedPlan?.name
+              }}</span>
+              <div class="w-4 h-4" v-if="selectedPlan?.isVerified">
+                <Check />
+              </div>
+            </div>
+            <span class="text-xs leading-[10px] font-normal mt-2">{{
+              selectedPlan?.location
+            }}</span>
           </div>
-        </button>
-      </form>
+        </div>
+      </div>
+      <div class="mt-3 flex flex-row gap-3">
+        <span class="text-xs text-[#027A48] bg-[#ECFDF3] px-2 py-1 rounded-2xl"
+          >{{ selectedPlan?.ratingPercentage }}% Rating</span
+        >
+        <span class="text-xs text-[#026AA2] bg-[#F0F9FF] px-2 py-1 rounded-2xl"
+          >Processed {{ selectedPlan?.processedEstimatedTrx }} investments</span
+        >
+      </div>
+      <div>
+        <h4 class="underline font-light text-sm my-3">About company</h4>
+        <p class="font-light text-xs text-[#667085]">
+          {{ selectedPlan?.about }}
+        </p>
+      </div>
+      <div class="bg-[#F9FAFB] p-5 my-3 rounded-lg">
+        <div class="flex flex-row items-center justify-between">
+          <span class="text-sm text-[#0F172A]">Investors</span>
+          <span class="text-sm text-[#0F172A]">{{
+            selectedPlan?.investorsCount
+          }}</span>
+        </div>
+      </div>
+      <div class="bg-[#F9FAFB] p-5 rounded-lg">
+        <div
+          class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
+        >
+          <span class="text-[#667085]">Interest</span>
+          <span
+            class="text-ellipsis text-end bg-[#ECFDF3] text-[#027A48] px-2 py-1 rounded-2xl"
+            >{{ selectedPlan?.dailyInterestPercentage }}% daily</span
+          >
+        </div>
+        <div
+          class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
+        >
+          <span class="text-[#667085]">Minimum</span>
+          <span class="text-ellipsis text-end"
+            >${{ selectedPlan?.minimumAmountToTrade }}</span
+          >
+        </div>
+
+        <div
+          class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
+        >
+          <span class="text-[#667085]">Period</span>
+          <select
+            name="duration"
+            v-model="selectedDuration"
+            class="bg-[#FFFFFF] text-[#667085] text-xs border-[0.6px] border-[#D0D5DD80] px-3 py-2 rounded-[20px] outline-none"
+          >
+            <option
+              class=""
+              :selected="selectedDuration === item"
+              v-for="item in selectedPlan?.tradeableDurations"
+              :key="item"
+            >
+              {{ item }}
+            </option>
+          </select>
+        </div>
+        <div
+          class="flex items-center justify-between mt-2 gap-2 md:text-sm text-xs w-full"
+        >
+          <span class="text-[#667085]"
+            >Amount after {{ selectedDuration }}</span
+          >
+          <span class="text-ellipsis text-end">${{ amountAfterDuration }}</span>
+        </div>
+
+        <form @submit.prevent="handleInvestmentButtonClick" class="w-full">
+          <div class="mt-3">
+            <input
+              required
+              :value="investAmount"
+              type="text"
+              @input="handleInput"
+              inputmode="numeric"
+              pattern="[0-9]+"
+              class="text-xs text-[#667085] rounded-lg border-[0.6px] border-[#D0D5DD] outline-none w-full px-[14px] py-[10px]"
+              :placeholder="`Amount to invest (Min - $${selectedPlan?.minimumAmountToTrade})`"
+            />
+          </div>
+          <button
+            :disabled="
+              !investAmount ||
+              investAmount < selectedPlan?.minimumAmountToTrade ||
+              isMakingInvestment
+            "
+            class="text-xs disabled:cursor-not-allowed disabled:opacity-70 text-white rounded-lg bg-[#00D99D] outline-none mt-3 px-[14px] py-[10px] font-medium flex items-center justify-center w-full"
+          >
+            <span v-if="!isMakingInvestment"> Invest </span>
+            <div v-else class="w-4 h-4 flex items-center justify-center">
+              <Loader />
+            </div>
+          </button>
+        </form>
+      </div>
+      <!--  -->
     </div>
   </Modal>
 </template>

@@ -34,7 +34,7 @@ const useDashboardStore = defineStore("dashboard", {
           const mainStore = useMainStore();
           mainStore.user = {
             ...mainStore.user,
-            balance: data?.data?.balance,
+            balance: data?.data?.balance?.toFixed(2),
           };
           return data;
         } else {
@@ -49,9 +49,9 @@ const useDashboardStore = defineStore("dashboard", {
     async getPlanTemplates() {
       this.isFetchingPlanTemplates = true;
       try {
-        const { data } = await axios.get("/plan/templates");
+        const { data } = await axios.get("/company/all");
         if (data?.status === "success") {
-          this.planTemplates = data?.data?.plans;
+          this.planTemplates = data?.data?.companies;
         }
       } catch (error) {
         console.log(error);
@@ -79,11 +79,12 @@ const useDashboardStore = defineStore("dashboard", {
         throw error;
       }
     },
-    async makeInvestment({ amount, planId }) {
+    async makeInvestment({ amount, planId, duration }) {
       this.isMakingInvestment = true;
       try {
-        const { data } = await axios.post(`/plan/${planId}/start`, {
+        const { data } = await axios.post(`/company/${planId}/start`, {
           amount,
+          duration,
         });
         this.isMakingInvestment = false;
         if (data?.status === "success") {
@@ -91,6 +92,11 @@ const useDashboardStore = defineStore("dashboard", {
             data?.data?.plan,
             ...this.runningInvestments,
           ];
+          const mainStore = useMainStore();
+          mainStore.user = {
+            ...mainStore.user,
+            balance: data?.data?.balance,
+          };
           return data;
         } else {
           throw data;
